@@ -14,8 +14,8 @@ class DotzzaApp extends StatelessWidget {
       title: 'Dotzza Project Tracker',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        fontFamily: 'Lato',
         primaryColor: const Color(0xFF9B87E8),
-        fontFamily: 'SF Pro Display',
         scaffoldBackgroundColor: const Color(0xFFF8F8F6),
       ),
       home: const DashboardScreen(),
@@ -55,31 +55,34 @@ class _DashboardScreenState extends State<DashboardScreen>
   List<Project> projects = [
     Project(
       name: 'Community Health Project',
-      daysRemaining: 72,
+      daysRemaining: 79,
       deadline: 'Thesis 2026',
-      progress: 0.75,
+      progress: 0.7,
       priority: 'High',
     ),
     Project(
       name: 'Research Documentation',
       daysRemaining: 45,
       deadline: 'Q4 2024',
-      progress: 0.6,
+      progress: 0.9,
       priority: 'Medium',
     ),
     Project(
       name: 'Web Development',
       daysRemaining: 30,
       deadline: 'Dec 2024',
-      progress: 0.4,
+      progress: 0.9,
       priority: 'High',
     ),
   ];
 
   int get totalProjects => projects.length;
   int get completedProjects => projects.where((p) => p.progress >= 1.0).length;
-  double get completionRate =>
-      totalProjects > 0 ? (completedProjects / totalProjects) : 0.0;
+  double get completionRate {
+    if (totalProjects == 0) return 0.0;
+    double totalProgress = projects.fold(0.0, (sum, project) => sum + project.progress);
+    return totalProgress / totalProjects;
+  }
   int get activeProjects => projects.where((p) => p.progress < 1.0).length;
   int get highPriorityCount =>
       projects.where((p) => p.priority == 'High').length;
@@ -100,7 +103,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       duration: const Duration(milliseconds: 1200),
     );
 
-    _progressAnimation = Tween<double>(begin: 0, end: completionRate).animate(
+    _progressAnimation = Tween<double>(begin: 0.0, end: completionRate).animate(
       CurvedAnimation(parent: _progressController, curve: Curves.easeOutCubic),
     );
 
@@ -119,629 +122,760 @@ class _DashboardScreenState extends State<DashboardScreen>
     final percentage = (completionRate * 100).round();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F8F6),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-
-              // Header
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'DOTZZA',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.grey[800],
-                        letterSpacing: 3,
-                      ),
-                    ),
-                    Text(
-                      'TASK TRACKER',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[900],
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 50),
-
-              // Main Wave Circle with Stats
-              SizedBox(
-                height: 380,
-                child: Stack(
-                  children: [
-                    // Wave Circle (left side) - positioned as half circle
-                    Positioned(
-                      left: -140,
-                      top: 50,
-                      child: SizedBox(
-                        width: 280,
-                        height: 280,
-                        child: AnimatedBuilder(
-                          animation: Listenable.merge([
-                            _waveController,
-                            _progressAnimation,
-                          ]),
-                          builder: (context, child) {
-                            return CustomPaint(
-                              painter: OasisWaveCirclePainter(
-                                waveAnimation: _waveController.value,
-                                progress: _progressAnimation.value,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-
-                    // Percentage inside circle
-                    Positioned(
-                      left: 32,
-                      top: 130,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '$percentage%',
-                            style: TextStyle(
-                              fontSize: 58,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.grey[900],
-                              height: 1,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Completed',
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.grey[500],
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Right side stats
-                    Positioned(
-                      right: 32,
-                      top: 20,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            'Today',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '$activeProjects Tasks',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF9B87E8),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Goal $totalProjects Tasks',
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.grey[800],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 40),
-                          Text(
-                            '100%',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.grey[900],
-                            ),
-                          ),
-                          Text(
-                            'Daily Average',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[500],
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          Text(
-                            '$completedProjects/$totalProjects',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.grey[900],
-                            ),
-                          ),
-                          Text(
-                            'Completed',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[500],
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Emoji
-                    Positioned(
-                      right: 70,
-                      bottom: 40,
-                      child: Text(
-                        completionRate >= 1.0
-                            ? '🎉'
-                            : (completionRate >= 0.5 ? '😊' : '🙂'),
-                        style: const TextStyle(fontSize: 42),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 30),
-
-              // Time to Go Card
-              _buildTimeToGoCard(),
-
-              const SizedBox(height: 20),
-
-              // Priority Meter Card
-              _buildPriorityMeterCard(),
-
-              const SizedBox(height: 20),
-
-              // Completion Rate Card
-              _buildCompletionRateCard(),
-
-              const SizedBox(height: 30),
-
-              // Main action section
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Row(
-                  children: [
-                    // Project count button
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 14,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.grey[300]!),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.folder_outlined,
-                            size: 22,
-                            color: Colors.grey[700],
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            'Projects',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey[900],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(width: 12),
-
-                    // Add Task button
-                    Expanded(
-                      child: Container(
-                        height: 54,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF9B87E8), Color(0xFF7FB8E8)],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
-                          borderRadius: BorderRadius.circular(27),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF9B87E8).withOpacity(0.3),
-                              blurRadius: 15,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(27),
-                            onTap: () {},
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.3),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.add,
-                                    color: Colors.white,
-                                    size: 18,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                const Text(
-                                  'Add Task',
-                                  style: TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 50),
-
-              // Bottom Navigation
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildNavIcon(Icons.water_drop, true),
-                    _buildNavIcon(Icons.access_time_outlined, false),
-                    _buildNavIcon(Icons.settings_outlined, false),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0X9873e7),
+              Color(0X9873e7),
+              Color(0xFFFFFFFF),
             ],
+            stops: [0.0, 0.4, 1.0],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTimeToGoCard() {
-    if (projects.isEmpty) return const SizedBox.shrink();
-
-    final nearestProject = projects.reduce(
-      (a, b) => a.daysRemaining < b.daysRemaining ? a : b,
-    );
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFFF9C4), Color(0xFFFFF59D)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Time to Go',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[900],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
               children: [
-                Icon(Icons.calendar_today, size: 20, color: Colors.grey[700]),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    nearestProject.name,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${nearestProject.daysRemaining}',
-                        style: TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.grey[900],
-                          height: 1,
-                        ),
-                      ),
-                      Text(
-                        'Days',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        nearestProject.deadline,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[800],
-                        ),
-                      ),
-                      Text(
-                        nearestProject.deadline,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+                const SizedBox(height: 40),
 
-  Widget _buildPriorityMeterCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Priority Meter',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[900],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                // Legend
-                Expanded(
+                // Header
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildPriorityLegend(
-                        'High',
-                        highPriorityCount,
-                        const Color(0xFFFF8A80),
+                      Text(
+                        'DOTZZA',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.grey[800],
+                          letterSpacing: 3,
+                        ),
                       ),
-                      const SizedBox(height: 12),
-                      _buildPriorityLegend(
-                        'Medium',
-                        mediumPriorityCount,
-                        const Color(0xFF9B87E8),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildPriorityLegend(
-                        'Low',
-                        lowPriorityCount,
-                        const Color(0xFFFFE082),
+                      Text(
+                        'TASK TRACKER',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[900],
+                          letterSpacing: 1,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 20),
-                // Circular chart
+
+                const SizedBox(height: 50),
+
+                // Main Wave Circle with Stats
                 SizedBox(
-                  width: 120,
-                  height: 120,
-                  child: CustomPaint(
-                    painter: PriorityCirclePainter(
-                      highCount: highPriorityCount,
-                      mediumCount: mediumPriorityCount,
-                      lowCount: lowPriorityCount,
-                      total: totalProjects,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '$totalProjects',
-                        style: TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.grey[900],
+                  height: 380,
+                  child: Stack(
+                    children: [
+                      // Wave Circle (left side) - positioned as half circle
+                      Positioned(
+                        left: -120,
+                        top: 50,
+                        child: SizedBox(
+                          width: 280,
+                          height: 280,
+                          child: AnimatedBuilder(
+                            animation: Listenable.merge([
+                              _waveController,
+                              _progressAnimation,
+                            ]),
+                            builder: (context, child) {
+                              return CustomPaint(
+                                painter: OasisProgressCirclePainter(
+                                  progress: _progressAnimation.value,
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
+
+                      // Percentage inside circle
+                      Positioned(
+                        left: 20,
+                        top: 160,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ShaderMask(
+                              shaderCallback: (bounds) => const LinearGradient(
+                                colors: [
+                                  Color(0xFF9B87E8),
+                                  Color(0xFF7FB8E8),
+                                ],
+                              ).createShader(bounds),
+                              child: Text(
+                                '${(completionRate * 100).round()}%',
+                                style: const TextStyle(
+                                  fontSize: 45,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                  height: 1,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Completed',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.grey[500],
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Right side stats
+                      Positioned(
+                        right: 32,
+                        top: 20,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              'Today',
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            ShaderMask(
+                              shaderCallback: (bounds) => const LinearGradient(
+                                colors: [
+                                  Color(0xFF9B87E8),
+                                  Color(0xFF7FB8E8),
+                                ],
+                              ).createShader(bounds),
+                              child: Text(
+                                '$activeProjects Tasks',
+                                style: const TextStyle(
+                                  fontSize: 38,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Goal $totalProjects Tasks',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.grey[800],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 40),
+                            Text(
+                              '100%',
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.grey[900],
+                              ),
+                            ),
+                            Text(
+                              'Daily Average',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[500],
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              '$completedProjects/$totalProjects',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.grey[900],
+                              ),
+                            ),
+                            Text(
+                              'Completed',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[500],
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Emoji
+                      Positioned(
+                        right: 70,
+                        bottom: 10,
+                        child: Text(
+                          completionRate >= 1.0
+                              ? '🎉'
+                              : (completionRate >= 0.5 ? '😊' : '🙂'),
+                          style: const TextStyle(fontSize: 42),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                // Time to Go Card
+                _buildTimeToGoCard(),
+
+                const SizedBox(height: 20),
+
+                // Priority Meter Card
+                _buildPriorityMeterCard(),
+
+                const SizedBox(height: 20),
+
+                // Completion Rate Card
+                _buildCompletionRateCard(),
+
+                const SizedBox(height: 30),
+
+               
+                    
+                  
+                
+
+                const SizedBox(height: 50),
+
+                // Bottom Navigation
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildNavIcon(Icons.water_drop, true),
+                      _buildNavIcon(Icons.access_time_outlined, false),
+                      _buildNavIcon(Icons.settings_outlined, false),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+Widget _buildTimeToGoCard() {
+  if (projects.isEmpty) return const SizedBox.shrink();
+
+  final nearestProject = projects.reduce(
+    (a, b) => a.daysRemaining < b.daysRemaining ? a : b,
+  );
+
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 32),
+    child: Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF9B87E8),
+            Color(0xFF8A73D6),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF9B87E8).withOpacity(0.35),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.3),
+                      Colors.white.withOpacity(0.15),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.schedule,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'UPCOMING DEADLINE',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Text(
+            nearestProject.name,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              height: 1.3,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 32),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${nearestProject.daysRemaining}',
+                    style: const TextStyle(
+                      fontSize: 72,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      height: 0.9,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'DAYS LEFT',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.25),
+                      Colors.white.withOpacity(0.15),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Text(
+                      'DUE DATE',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      nearestProject.deadline,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _buildPriorityMeterCard() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 32),
+    child: Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.white,
+            Colors.white.withOpacity(0.95),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF9B87E8).withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF9B87E8).withOpacity(0.15),
+                      const Color(0xFF7FB8E8).withOpacity(0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [Color(0xFF9B87E8), Color(0xFF7FB8E8)],
+                  ).createShader(bounds),
+                  child: const Icon(
+                    Icons.analytics,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [Color(0xFF9B87E8), Color(0xFF7FB8E8)],
+                ).createShader(bounds),
+                child: const Text(
+                  'PRIORITY OVERVIEW',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 28),
+          _buildPriorityItem(
+            'High Priority',
+            highPriorityCount,
+            const Color(0xFF9B87E8),
+            Icons.priority_high,
+          ),
+          const SizedBox(height: 12),
+          _buildPriorityItem(
+            'Medium Priority',
+            mediumPriorityCount,
+            const Color(0xFFB39DFF),
+            Icons.adjust,
+          ),
+          const SizedBox(height: 12),
+          _buildPriorityItem(
+            'Low Priority',
+            lowPriorityCount,
+            const Color(0xFFD4C5FF),
+            Icons.low_priority,
+          ),
+          const SizedBox(height: 24),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF9B87E8).withOpacity(0.15),
+                  const Color(0xFF7FB8E8).withOpacity(0.08),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [Color(0xFF9B87E8), Color(0xFF7FB8E8)],
+                  ).createShader(bounds),
+                  child: Text(
+                    '$totalProjects',
+                    style: const TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShaderMask(
+                      shaderCallback: (bounds) => const LinearGradient(
+                        colors: [Color(0xFF9B87E8), Color(0xFF7FB8E8)],
+                      ).createShader(bounds),
+                      child: const Text(
+                        'TOTAL',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      'Projects',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _buildPriorityItem(String label, int count, Color color, IconData icon) {
+  return Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          color.withOpacity(0.12),
+          color.withOpacity(0.08),
+        ],
+      ),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            color: color,
+            size: 20,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[800],
+            ),
+          ),
+        ),
+        Text(
+          '$count',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: color,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildCompletionRateCard() {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 32),
+    child: Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF9B87E8),
+            Color(0xFF7FB8E8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF9B87E8).withOpacity(0.35),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.3),
+                      Colors.white.withOpacity(0.15),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.insert_chart,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'COMPLETION RATE',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                width: 160,
+                height: 160,
+                child: CustomPaint(
+                  painter: CompletionCirclePainter(progress: completionRate),
+                ),
+              ),
+              Column(
+                children: [
+                  Text(
+                    '${(completionRate * 100).round()}',
+                    style: const TextStyle(
+                      fontSize: 56,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      height: 1,
+                    ),
+                  ),
+                  const Text(
+                    '%',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      height: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.25),
+                          Colors.white.withOpacity(0.15),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      'COMPLETED',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white.withOpacity(0.2),
+                  Colors.white.withOpacity(0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.lightbulb_outline,
+                  color: Colors.white.withOpacity(0.9),
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Focus on improving on-time delivery',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(0.95),
                     ),
                   ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildPriorityLegend(String label, int count, Color color) {
-    return Row(
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(3),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey[800],
-          ),
-        ),
-        const Spacer(),
-        Text(
-          '$count',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[900],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCompletionRateCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFE1BEE7), Color(0xFFCE93D8)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Task Performance',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[900],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Feedback: Need to improve\non-time completion',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[800],
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 20),
-            // Circular progress
-            SizedBox(
-              width: 80,
-              height: 80,
-              child: Stack(
-                children: [
-                  CustomPaint(
-                    size: const Size(80, 80),
-                    painter: CompletionCirclePainter(progress: 0.5),
-                  ),
-                  Center(
-                    child: Text(
-                      '50%',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.grey[900],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildNavIcon(IconData icon, bool isActive) {
     return Icon(
@@ -752,70 +886,64 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 }
 
-class OasisWaveCirclePainter extends CustomPainter {
-  final double waveAnimation;
+class OasisProgressCirclePainter extends CustomPainter {
   final double progress;
 
-  OasisWaveCirclePainter({required this.waveAnimation, required this.progress});
+  OasisProgressCirclePainter({required this.progress});
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
 
-    // Background circle
+    // Background circle with subtle gradient effect
     final bgPaint = Paint()
-      ..color = const Color(0xFFE8E8E6)
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFFFAF8FF),
+          const Color(0xFFF3F0FF),
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: radius))
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, radius - 10, bgPaint);
+    canvas.drawCircle(center, radius - 2, bgPaint);
 
-    // Thick border
-    final borderPaint = Paint()
-      ..color = Colors.black
+    // Background ring (unfilled portion)
+    final bgRingPaint = Paint()
+      ..color = Colors.white
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 8;
-    canvas.drawCircle(center, radius - 10, borderPaint);
+      ..strokeWidth = 50
+      ..strokeCap = StrokeCap.round;
+    canvas.drawCircle(center, radius - 2, bgRingPaint);
 
-    // Clip to circle for wave
-    canvas.save();
-    final circlePath = Path()
-      ..addOval(Rect.fromCircle(center: center, radius: radius - 10));
-    canvas.clipPath(circlePath);
+    // Progress ring with gradient
+    final progressRect = Rect.fromCircle(center: center, radius: radius - 2);
+    final progressPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [
+          const Color(0xFF9B87E8),
+          const Color(0xFF9B87E8),
+        ],
+      ).createShader(progressRect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 50
+      ..strokeCap = StrokeCap.round;
 
-    // Calculate water level
-    final waterLevel = size.height - (size.height * progress);
-    final wavePath = Path();
-    wavePath.moveTo(0, waterLevel);
-
-    // Create wave
-    for (double i = 0; i <= size.width; i++) {
-      final waveHeight =
-          15 *
-          math.sin(
-            (i / size.width * 2.5 * math.pi) + (waveAnimation * 2 * math.pi),
-          );
-      wavePath.lineTo(i, waterLevel + waveHeight);
-    }
-
-    wavePath.lineTo(size.width, size.height);
-    wavePath.lineTo(0, size.height);
-    wavePath.close();
-
-    // Wave gradient - using green colors
-    final waterPaint = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Color(0xFF9CCC65), Color(0xFF7CB342)],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
-      ..style = PaintingStyle.fill;
-
-    canvas.drawPath(wavePath, waterPaint);
-    canvas.restore();
+    final startAngle = -math.pi / 2;
+    final sweepAngle = math.pi * progress;
+    
+    canvas.drawArc(
+      progressRect,
+      startAngle,
+      sweepAngle,
+      false,
+      progressPaint,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant OasisProgressCirclePainter oldDelegate) {
+    return oldDelegate.progress != progress;
+  }
 }
 
 class PriorityCirclePainter extends CustomPainter {
@@ -847,16 +975,22 @@ class PriorityCirclePainter extends CustomPainter {
 
     double startAngle = -math.pi / 2;
 
-    // High priority
+    // High priority with gradient
     if (highCount > 0) {
+      final highRect = Rect.fromCircle(center: center, radius: radius - 8);
       final highPaint = Paint()
-        ..color = const Color(0xFFFF8A80)
+        ..shader = LinearGradient(
+          colors: [
+            const Color(0xFF9B87E8),
+            const Color(0xFF8A73D6),
+          ],
+        ).createShader(highRect)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 16
         ..strokeCap = StrokeCap.round;
       final highSweep = (highCount / total) * 2 * math.pi;
       canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius - 8),
+        highRect,
         startAngle,
         highSweep,
         false,
@@ -868,7 +1002,7 @@ class PriorityCirclePainter extends CustomPainter {
     // Medium priority
     if (mediumCount > 0) {
       final mediumPaint = Paint()
-        ..color = const Color(0xFF9B87E8)
+        ..color = const Color(0xFFB39DFF)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 16
         ..strokeCap = StrokeCap.round;
@@ -886,7 +1020,7 @@ class PriorityCirclePainter extends CustomPainter {
     // Low priority
     if (lowCount > 0) {
       final lowPaint = Paint()
-        ..color = const Color(0xFFFFE082)
+        ..color = const Color(0xFFD4C5FF)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 16
         ..strokeCap = StrokeCap.round;
@@ -917,21 +1051,27 @@ class CompletionCirclePainter extends CustomPainter {
 
     // Background circle
     final bgPaint = Paint()
-      ..color = Colors.white.withOpacity(0.5)
+      ..color = Colors.white.withOpacity(0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 12;
     canvas.drawCircle(center, radius - 6, bgPaint);
 
-    // Progress arc
+    // Progress arc with gradient
+    final progressRect = Rect.fromCircle(center: center, radius: radius - 6);
     final progressPaint = Paint()
-      ..color = const Color(0xFF6A4C93)
+      ..shader = LinearGradient(
+        colors: [
+          Colors.white.withOpacity(0.9),
+          Colors.white,
+        ],
+      ).createShader(progressRect)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 12
       ..strokeCap = StrokeCap.round;
 
     final sweepAngle = 2 * math.pi * progress;
     canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius - 6),
+      progressRect,
       -math.pi / 2,
       sweepAngle,
       false,
